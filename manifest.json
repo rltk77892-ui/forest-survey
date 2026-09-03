@@ -1,0 +1,10 @@
+{
+  "name": "초간단 산림조사",
+  "short_name": "산림조사",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f4",
+  "theme_color": "#1f6b45",
+  "description": "수종과 흉고직경만 빠르게 기록하는 산림조사 앱",
+  "icons": []
+}
