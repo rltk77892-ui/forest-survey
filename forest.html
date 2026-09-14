@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#176b3a"><link rel="manifest" href="manifest.json">
+<title>숲가꾸기 매목조사</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6f4;color:#17231b;font-family:system-ui,-apple-system,sans-serif}
+header{background:#176b3a;color:#fff;padding:17px}.title{font-size:22px;font-weight:900}.sub{font-size:13px;opacity:.85}
+main{max-width:720px;margin:auto;padding:12px}.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px #0001}
+label{display:block;font-size:13px;font-weight:800;margin-bottom:7px}
+input{width:100%;padding:12px;border:1px solid #d5ddd8;border-radius:10px;font-size:16px}textarea{width:100%;padding:12px;border:1px solid #d5ddd8;border-radius:10px;font-size:16px;resize:vertical;line-height:1.45}#address{min-height:72px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:#fafcfb}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.species{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.species button,.diam button{background:#edf2ef;color:#17231b}
+button{border:0;border-radius:11px;padding:12px;font-size:16px;font-weight:800}
+button.active{background:#176b3a;color:#fff}
+.smallbtn{font-size:13px;padding:9px}.add{background:#e8f0eb;color:#176b3a}.del{background:#f7dede;color:#a00000}
+.diam{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.measure{font-size:14px;color:#59645d;margin-bottom:10px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.keep{background:#176b3a;color:#fff}.remove{background:#c92b2b;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{text-align:center;background:#f1f5f2;border-radius:12px;padding:10px}.decision-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.decision{border-radius:12px;padding:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}.decision b{font-size:24px}.decision small{font-size:13px}.keepbox{background:#e9f6ed;color:#176b3a}.removebox{background:#fdeaea;color:#a00000}
+.species-summary{display:flex;flex-direction:column;gap:10px}.species-card{border:1px solid #d9e2dc;border-radius:14px;overflow:hidden;background:#fbfcfb}.species-title{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;background:#f1f5f2;border-bottom:1px solid #dfe7e2}.species-title .name{font-size:17px;font-weight:900}.species-title .counts{font-size:13px;color:#4f5c54}.species-title .counts b{color:#176b3a}.species-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}.species-table th,.species-table td{padding:9px 6px;text-align:center;border-bottom:1px solid #edf0ee}.species-table th{background:#f7f9f8;font-weight:800;color:#4f5c54}.species-table th:first-child,.species-table td:first-child{text-align:left;padding-left:13px;width:25%;font-weight:800}.species-table td.keepcell{color:#176b3a;font-weight:800}.species-table td.removecell{color:#b00020;font-weight:800}.species-table tr:last-child td{border-bottom:0}.species-table .empty{color:#68736c;font-weight:400;text-align:center!important;padding:12px}.species-row.head{display:none}.diameter-detail{display:none}.num{font-size:27px;font-weight:900}.rate{text-align:center;font-size:38px;font-weight:900;color:#176b3a;background:#e9f6ed;border-radius:14px;padding:10px;margin-top:9px}
+.gps{width:100%;background:#176b3a;color:#fff}.coords{font-size:13px;line-height:1.6;margin-top:8px}
+.history{max-height:230px;overflow:auto}.item{padding:8px 0;border-bottom:1px solid #edf0ee;font-size:13px}.itemrow{display:flex;gap:8px;align-items:center;justify-content:space-between}.editbtn{padding:5px 9px;border:1px solid #cfd8d2;border-radius:8px;background:#fff;font-size:12px;white-space:nowrap}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.outline{background:#edf2ef}.danger{background:#f7dede;color:#a00000}
+
+<style>
+.settings-fab{position:absolute;right:12px;top:12px;background:#ffffff22;color:#fff;border:1px solid #ffffff55;border-radius:12px;padding:8px 10px;font-size:14px}
+.settings-panel{display:none;position:fixed;inset:0;background:#0006;z-index:9999;padding:18px}
+.settings-card{max-width:430px;margin:8vh auto 0;background:#fff;border-radius:18px;padding:18px;box-shadow:0 10px 35px #0004}
+.settings-row{margin:15px 0}.settings-row label{display:flex;justify-content:space-between;align-items:center}
+.settings-row input[type=range]{width:100%;accent-color:#176b3a}
+.settings-switch{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #edf0ee}
+.settings-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.settings-close{width:100%;margin-top:10px;background:#edf2ef}
+</style>
+</style></head>
+<body>
+<header style="position:relative"><div class="title">🌲 숲가꾸기 매목조사</div><div class="sub">GRS80 중부원점(EPSG:5186) · 본수 기준 제거율</div><button class="settings-fab" onclick="openSettings()">⚙️ 설정</button></header><div style="padding:8px 12px"><a href="./index.html" style="text-decoration:none">← 통합목록</a></div>
+
+<div id="settingsPanel" class="settings-panel" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-card">
+    <div style="font-size:19px;font-weight:900">⚙️ 소리·진동 설정</div>
+    <div class="settings-switch"><span>🔊 소리</span><input id="soundOn" type="checkbox"></div>
+    <div class="settings-row">
+      <label><span>소리 크기</span><b id="soundVal">60%</b></label>
+      <input id="soundVol" type="range" min="0" max="100" value="60">
+    </div>
+    <div class="settings-switch"><span>📳 진동</span><input id="vibOn" type="checkbox"></div>
+    <div class="settings-row">
+      <label><span>진동 세기</span><b id="vibVal">35ms</b></label>
+      <input id="vibVol" type="range" min="10" max="120" value="35">
+    </div>
+    <div class="settings-btns">
+      <button class="outline" onclick="testSound()">🔊 테스트 소리</button>
+      <button class="outline" onclick="testVibration()">📳 테스트 진동</button>
+    </div>
+    <button class="settings-close" onclick="closeSettings()">닫기</button>
+  </div>
+</div>
+<main>
+<section class="card"><div class="grid2"><div><label>조사구역</label><input id="site" placeholder="예: 1구역"></div><div><label>조사면적(ha)</label><input id="area" type="number" step=".01"></div></div></section>
+
+<section class="card"><label>GPS / 좌표</label><button class="gps" onclick="getGPS()">📍 정밀 GPS 취득</button><div class="coords" id="gpsText">정밀 GPS를 취득하면 여러 번 측정한 위치를 이용해 위·경도와 GRS80 중부원점 좌표를 표시합니다.</div></section>
+
+<section class="card"><label>현재주소</label><textarea id="address" rows="3" placeholder="GPS 취득 후 주소 조회" readonly></textarea><button type="button" class="gps" style="margin-top:8px" onclick="getAddress()">📍 현재주소 조회</button></section>
+
+<section class="card"><label>특이사항</label>
+<input id="notes" placeholder="현장 특이사항을 입력하세요.">
+</section>
+
+<section class="card"><label>수종</label><div class="species" id="species"></div>
+<div class="actions" style="margin-top:9px"><button class="add" onclick="addSpecies()">＋ 수종 추가</button><button class="del" onclick="deleteSpecies()">− 수종 제거</button></div></section>
+
+<section class="card"><label>경급 / 흉고직경(cm)</label><div class="diam" id="diam"></div>
+<div class="choice" style="margin-top:10px"><button class="keep" onclick="record('존치')">🟢 존치</button><button class="remove" onclick="record('제거')">🔴 제거</button></div>
+<div style="margin-top:10px"><label>직접 입력(cm)</label><input id="customD" type="number" step=".1" min="0.1" placeholder="예: 17.5" onkeydown="if(event.key==='Enter')setCustom()"><button class="add" style="width:100%;margin-top:7px" onclick="setCustom()">입력한 경급 선택</button></div>
+<div class="actions" style="margin-top:9px"><button class="add" onclick="addDiameter()">＋ 경급 추가</button><button class="del" onclick="deleteDiameter()">− 경급 제거</button></div></section>
+
+<section class="card"><label>경계목</label>
+<div class="grid2"><input id="boundaryCount" type="number" min="0" step="1" value="4" placeholder="경계목 본수">
+<button type="button" class="add" id="boundaryBtn">☑ 계산에 포함</button></div>
+<div style="margin-top:9px"><label>경계목 수종 / 경급 · 흉고직경(cm)</label><div id="boundaryDiameters" style="display:block"></div><div style="font-size:12px;color:#666;margin-top:6px">경계목 1본씩 수종과 경급을 입력하세요.</div></div>
+<div id="boundaryStatus" style="font-size:13px;margin-top:8px">현재: 제거율 계산에 포함 (4본)</div>
+</section>
+<section class="card"><div class="stats"><div class="stat"><div>전체</div><div class="num" id="total">0</div><div>본</div></div><div class="stat"><div>제거</div><div class="num" id="removed">0</div><div>본</div></div><div class="stat"><div>존치</div><div class="num" id="kept">0</div><div>본</div></div></div><div style="text-align:center;margin-top:9px">실시간 본수 제거율</div><div class="rate" id="rate">0.0%</div><div class="decision-summary"><div class="decision keepbox"><span>🟢 존치</span><b id="summaryKept">0</b><small>본</small></div><div class="decision removebox"><span>🔴 제거</span><b id="summaryRemoved">0</b><small>본</small></div></div><div style="margin-top:12px"><div style="font-size:13px;font-weight:800;margin-bottom:7px">수종별 기록</div><div id="speciesSummary" class="species-summary"></div></div></section>
+
+<section class="card"><label>현재 측정</label><div class="measure" id="current"></div></section>
+
+<section class="card"><label>최근 기록</label><div class="history" id="history">기록이 없습니다.</div><div class="actions" style="margin-top:9px"><button class="add" onclick="exportCSV()">📄 CSV 저장</button><button class="add" onclick="saveHangulDoc()">🇰🇷 한글 저장</button><button class="danger" onclick="clearAll()">전체 삭제</button><button class="outline" onclick="undo()">↩ 마지막 기록 취소</button></div></section>
+</main>
+<script>
+const KEY="forest_5186_v1";
+let S=JSON.parse(localStorage.getItem(KEY)||"null")||{
+ species:["소나무","참나무","낙엽송","리기다소나무","상수리나무","기타"],
+ diameters:Array.from({length:19},(_,i)=>(i+1)*2+2), records:[],gps:null,address:"",boundaryDiameters:["","","",""],boundarySpecies:["","","",""],boundaryCount:4
+};
+let sp=S.species[0], dia=S.diameters[0];
+
+function save(){localStorage.setItem(KEY,JSON.stringify(S));render()}
+function esc(x){return String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function feedback(){try{navigator.vibrate?.(35)}catch(e){}}
+let boundaryIncluded=true;
+function toggleBoundary(){
+ boundaryIncluded=!boundaryIncluded;
+ document.getElementById("boundaryBtn").textContent=boundaryIncluded?"☑ 계산에 포함":"☐ 계산에서 제외";
+ render();
+}
+function ensureBoundaryState(){
+ if(!Array.isArray(S.boundaryDiameters))S.boundaryDiameters=[];
+ if(!Array.isArray(S.boundarySpecies))S.boundarySpecies=[];
+ const c=Math.max(0,Number(S.boundaryCount??document.getElementById("boundaryCount")?.value??4));
+ while(S.boundaryDiameters.length<c)S.boundaryDiameters.push("");
+ while(S.boundarySpecies.length<c)S.boundarySpecies.push("");
+ S.boundaryDiameters.length=c;S.boundarySpecies.length=c;S.boundaryCount=c;
+}
+function renderBoundaryDiameters(){
+ ensureBoundaryState();
+ const box=document.getElementById("boundaryDiameters");if(!box)return;
+ const species=Array.isArray(S.species)?S.species:[];
+ box.innerHTML=Array.from({length:S.boundaryCount},(_,i)=>{
+  const opts=['<option value="">수종 선택</option>'].concat(species.map(sp=>`<option value="${esc(sp)}"${S.boundarySpecies[i]===sp?" selected":""}>${esc(sp)}</option>`)).join("");
+  return `<div style="display:grid;grid-template-columns:42px 1fr 88px;gap:6px;align-items:center;margin:4px 0"><b>${i+1}번</b><select data-bs="${i}">${opts}</select><input type="number" min="0.1" step=".1" placeholder="cm" value="${esc(S.boundaryDiameters[i]??"")}" data-bd="${i}"></div>`;
+ }).join("");
+ box.querySelectorAll("select[data-bs]").forEach(el=>el.onchange=()=>{S.boundarySpecies[Number(el.dataset.bs)]=el.value;save();});
+ box.querySelectorAll("input[data-bd]").forEach(el=>el.oninput=()=>{S.boundaryDiameters[Number(el.dataset.bd)]=el.value;localStorage.setItem(KEY,JSON.stringify(S));});
+}
+function renderBoundaryInit(){
+ const b=document.getElementById("boundaryBtn");if(b)b.onclick=toggleBoundary;
+ const c=document.getElementById("boundaryCount");
+ if(c){
+  ensureBoundaryState();c.value=S.boundaryCount;
+  c.onchange=()=>{S.boundaryCount=Math.max(0,Number(c.value)||0);ensureBoundaryState();save();};
+ }
+ renderBoundaryDiameters();
+}
+function renderSpeciesSummary(){
+ const el=document.getElementById("speciesSummary");if(!el)return;
+ const names=S.species.filter(name=>S.records.some(x=>x.species===name));
+ if(!names.length){el.innerHTML=`<div style="padding:10px;color:#68736c;font-size:13px">기록이 없습니다.</div>`;return;}
+ el.innerHTML=names.map(name=>{
+  const rs=S.records.filter(x=>x.species===name);
+  const kept=rs.filter(x=>x.action==="존치").length, removed=rs.filter(x=>x.action==="제거").length;
+  const dm={};
+  rs.forEach(x=>{const d=String(x.diameter);dm[d]??={k:0,r:0};if(x.action==="제거")dm[d].r++;else dm[d].k++;});
+  const rows=Object.keys(dm).sort((a,b)=>parseFloat(a)-parseFloat(b)).map(d=>{
+   const k=dm[d].k,r=dm[d].r,t=k+r,p=t?r/t*100:0;
+   return `<tr><td>${esc(d)}cm</td><td>${t}</td><td class="keepcell">🟢 ${k}</td><td class="removecell">🔴 ${r}</td><td class="removecell">${p.toFixed(1)}%</td></tr>`;
+  }).join("");
+  return `<div class="species-card"><div class="species-title"><span class="name">🌲 ${esc(name)}</span><span class="counts">전체 <b>${rs.length}</b> · 존치 <b>${kept}</b> · 제거 <b>${removed}</b></span></div><table class="species-table"><thead><tr><th>경급</th><th>전체</th><th>존치</th><th>제거</th><th>제거율</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+ }).join("");
+}
+function render(){
+ document.getElementById("species").innerHTML=S.species.map((x,i)=>`<button type="button" class="${x===sp?"active":""}" data-species-index="${i}">${esc(x)}</button>`).join("");
+document.querySelectorAll("#species button").forEach(b=>b.onclick=()=>{sp=S.species[Number(b.dataset.speciesIndex)];render();feedback();});
+ document.getElementById("diam").innerHTML=S.diameters.map(x=>`<button class="${Number(x)===Number(dia)?"active":""}" onclick="dia=${x};render()">${x}</button>`).join("");
+ let measured=S.records.length, rem=S.records.filter(x=>x.action==="제거").length;
+ let bc=Math.max(0,Number(document.getElementById("boundaryCount")?.value||0));
+ let total=measured+(boundaryIncluded?bc:0), kept=total-rem;
+ document.getElementById("total").textContent=total;document.getElementById("removed").textContent=rem;document.getElementById("kept").textContent=kept;
+ document.getElementById("rate").textContent=(total?rem/total*100:0).toFixed(1)+"%";document.getElementById("summaryKept").textContent=kept;document.getElementById("summaryRemoved").textContent=rem;
+ renderSpeciesSummary();
+ ensureBoundaryState();
+ renderBoundaryDiameters();
+ document.getElementById("boundaryStatus").textContent=boundaryIncluded?`현재: 제거율 계산에 포함 (${bc}본)`:`현재: 제거율 계산에서 제외 (${bc}본)`;
+ document.getElementById("address").value=S.address||"";
+ document.getElementById("current").textContent=`${sp} · ${dia} cm`;
+ document.getElementById("history").innerHTML=S.records.length?S.records.slice().reverse().slice(0,100).map((x,ri)=>{const i=S.records.length-1-ri;return `<div class="item"><div class="itemrow"><div>${x.time} · ${esc(x.species)} · ${x.diameter}cm · <b>${x.action}</b>${x.notes?` · 📝 ${esc(x.notes)}`:""}</div><button class="editbtn" onclick="editRecord(${i})">수정</button><button class="danger" onclick="deleteRecord(${i})">삭제</button></div></div>`}).join(""):"기록이 없습니다.";
+ if(S.gps) document.getElementById("gpsText").innerHTML=`📍 위도 ${S.gps.lat.toFixed(6)} / 경도 ${S.gps.lon.toFixed(6)}<br><b>GRS80 중부원점 EPSG:5186</b> · X ${S.gps.x.toFixed(3)} / Y ${S.gps.y.toFixed(3)}<br>GPS 정확도 약 ${Math.round(S.gps.accuracy)}m`;
+}
+function record(action){
+ S.records.push({time:new Date().toLocaleString("ko-KR"),species:sp,diameter:dia,action,
+ notes:document.getElementById("notes").value.trim(),
+ address:S.address||"",
+ lat:S.gps?.lat??null,lon:S.gps?.lon??null,x:S.gps?.x??null,y:S.gps?.y??null,accuracy:S.gps?.accuracy??null});
+ save();feedback();if(window.__forestFeedback)window.__forestFeedback();
+}
+function undo(){if(S.records.length){S.records.pop();save();feedback()}}
+function deleteRecord(i){if(!S.records||!S.records[i])return;if(!confirm("이 기록을 삭제할까요?"))return;S.records.splice(i,1);save();feedback();}
+function editRecord(i){
+  const r=S.records[i];
+  if(!r) return;
+  const next=r.action==="존치"?"제거":"존치";
+  if(confirm(`${r.species} ${r.diameter}cm · ${r.action}\n\n${next}(으)로 변경할까요?`)){
+    r.action=next;
+    save();
+    feedback();
+  }
+}
+function addSpecies(){let v=prompt("추가할 수종 이름을 입력하세요.");if(v&&v.trim()){v=v.trim();if(!S.species.includes(v))S.species.push(v);sp=v;save()}}
+function deleteSpecies(){if(S.species.length<=1)return alert("수종은 최소 1개가 필요합니다.");let v=prompt("삭제할 수종 이름을 정확히 입력하세요.");if(v&&S.species.includes(v)){if(!confirm(`'${v}' 수종을 삭제할까요? 기존 기록은 유지됩니다.`))return;S.species=S.species.filter(x=>x!==v);sp=S.species[0];save()}}
+function addDiameter(){let v=prompt("추가할 경급(cm)을 입력하세요.");let n=Number(v);if(v!==null&&isFinite(n)&&n>0&&!S.diameters.includes(n)){S.diameters.push(n);S.diameters.sort((a,b)=>a-b);dia=n;save()}}
+function deleteDiameter(){let v=prompt("삭제할 경급(cm)을 입력하세요.");let n=Number(v);if(v!==null&&S.diameters.length>1&&S.diameters.includes(n)){S.diameters=S.diameters.filter(x=>x!==n);dia=S.diameters[0];save()}}
+function setCustom(){let n=Number(document.getElementById("customD").value);if(isFinite(n)&&n>0){if(!S.diameters.includes(n)){S.diameters.push(n);S.diameters.sort((a,b)=>a-b)}dia=n;save();document.getElementById("customD").value=""}}
+async function getAddress(){
+ if(!S.gps) return alert("먼저 현재 위치 취득을 눌러주세요.");
+ const el=document.getElementById("address"); el.value="상세 지번주소 조회 중...";
+ try{
+  const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=${S.gps.lat}&lon=${S.gps.lon}&accept-language=ko`);
+  if(!r.ok) throw new Error();
+  const d=await r.json(), a=d.address||{};
+  // 산림 현장에서는 도로명보다 지번주소를 우선 표시한다.
+  const base=[a.province||a.state,a.city||a.county,a.town||a.municipality,a.village||a.hamlet].filter(Boolean);
+  let lot=a.house_number||a.place||"";
+  // Nominatim이 '산18'처럼 지번을 직접 주는 경우 그대로 사용
+  // 일반 숫자 지번은 임의로 '산'을 붙이지 않는다.
+  if(lot && /^\d+(?:-\d+)?$/.test(String(lot)) && (a.road||a.street)) lot="";
+  const parcel=[...base,...(lot?[lot]:[])].filter(Boolean);
+  if(parcel.length>=3 && lot){
+    S.address=parcel.join(" ");
+  }else{
+    const road=[a.province||a.state,a.city||a.county,a.town||a.municipality,a.road||a.street,a.house_number].filter(Boolean);
+    S.address=road.join(" ") || d.display_name || "주소를 찾지 못했습니다.";
+  }
+  localStorage.setItem(KEY,JSON.stringify(S)); render();
+ }catch(e){el.value="주소 조회 실패 — 인터넷 연결을 확인하세요.";}
+}
+function getGPS(){
+ if(!navigator.geolocation)return alert("이 기기에서 GPS를 사용할 수 없습니다.");
+ const el=document.getElementById("gpsText");
+ el.textContent="📍 정밀 GPS 측정 중... 잠시만 기다려주세요.";
+ const samples=[]; let watchId=null; let timer=null;
+ const finish=()=>{
+  if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+  if(timer) clearTimeout(timer);
+  if(!samples.length){
+   el.textContent="GPS 측정에 실패했습니다. 하늘이 잘 보이는 곳에서 다시 눌러주세요.";
+   return;
+  }
+  // 정확도가 좋은 상위 5개 측정값을 사용해 위치 흔들림을 줄입니다.
+  samples.sort((a,b)=>a.accuracy-b.accuracy);
+  const best=samples.slice(0,Math.min(5,samples.length));
+  let wsum=0, lat=0, lon=0;
+  best.forEach(v=>{const w=1/Math.max(v.accuracy,1)**2; wsum+=w; lat+=v.lat*w; lon+=v.lon*w;});
+  lat/=wsum; lon/=wsum;
+  const [x,y]=to5186(lon,lat);
+  const accuracy=Math.min(...best.map(v=>v.accuracy));
+  S.gps={lat,lon,x,y,accuracy}; save(); getAddress();
+ };
+ watchId=navigator.geolocation.watchPosition(p=>{
+  const c=p.coords;
+  if(!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude))return;
+  samples.push({lat:c.latitude,lon:c.longitude,accuracy:Number(c.accuracy)||9999});
+  const best=Math.min(...samples.map(v=>v.accuracy));
+  el.textContent=`📍 정밀 GPS 측정 중... ${samples.length}회 측정 · 현재 최고 정확도 약 ${Math.round(best)}m`;
+  // 3회 이상 측정되고 10m 이하가 나오면 조금 일찍 확정
+  if(samples.length>=3 && best<=10) finish();
+ },()=>{
+  if(!samples.length){
+   el.textContent="GPS 권한을 허용하고 다시 눌러주세요.";
+   if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+   if(timer) clearTimeout(timer);
+  }
+ },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+ timer=setTimeout(finish,10000);
+}
+// WGS84 longitude/latitude -> GRS80 / Central Belt EPSG:5186 (TM, meters).
+function to5186(lon,lat){
+ const a=6378137.0, rf=298.257222101, f=1/rf, e2=f*(2-f), ep2=e2/(1-e2);
+ const lat0=38*Math.PI/180, lon0=127*Math.PI/180, k0=1, FE=200000, FN=600000;
+ const p=lat*Math.PI/180, l=lon*Math.PI/180, dl=l-lon0;
+ const N=a/Math.sqrt(1-e2*Math.sin(p)**2),T=Math.tan(p)**2,C=ep2*Math.cos(p)**2,A=Math.cos(p)*dl;
+ const M=a*((1-e2/4-3*e2**2/64-5*e2**3/256)*p-(3*e2/8+3*e2**2/32+45*e2**3/1024)*Math.sin(2*p)+(15*e2**2/256+45*e2**3/1024)*Math.sin(4*p)-(35*e2**3/3072)*Math.sin(6*p));
+ const M0=a*((1-e2/4-3*e2**2/64-5*e2**3/256)*lat0-(3*e2/8+3*e2**2/32+45*e2**3/1024)*Math.sin(2*lat0)+(15*e2**2/256+45*e2**3/1024)*Math.sin(4*lat0)-(35*e2**3/3072)*Math.sin(6*lat0));
+ const y=FN+k0*(M-M0+N*Math.tan(p)*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*ep2)*A**6/720));
+ const x=FE+k0*N*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*ep2)*A**5/120);
+ return [x,y];
+}
+function clearAll(){if(confirm("모든 매목 기록을 삭제할까요?")){S.records=[];save()}}
+function xmlEsc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
+function excelCell(v, type="String", style="sCell"){
+  const t=type==="Number" && v!=="" && isFinite(Number(v)) ? Number(v) : xmlEsc(v);
+  return `<Cell ss:StyleID="${style}"><Data ss:Type="${type==="Number" && v!=="" && isFinite(Number(v)) ? "Number":"String"}">${t}</Data></Cell>`;
+}
+
+function exportCSV(){
+ let rows=[["조사구역","면적(ha)","현재주소","경계목 본수","경계목 수종","경계목 경급(cm)","경계목 제거율 계산","수종","경급(cm)","판정","특이사항","시간","위도","경도","GRS80중부 X","GRS80중부 Y","GPS정확도(m)"]];
+ S.records.forEach(r=>rows.push([document.getElementById("site").value,document.getElementById("area").value,S.address||"",document.getElementById("boundaryCount").value,(S.boundarySpecies||[]).map((sp,i)=>`${sp||""}`).filter(v=>v!=="").join(" / "),(S.boundaryDiameters||[]).map((d,i)=>d!==""?`${S.boundarySpecies?.[i]||""} ${d}cm`.trim():"").filter(v=>v!=="").join(" / "),boundaryIncluded?"포함":"제외",r.species,r.diameter,r.action,r.notes??"",r.time,r.lat??"",r.lon??"",r.x??"",r.y??"",r.accuracy??""]));
+ let csv="\ufeff"+rows.map(a=>a.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n"),a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="숲가꾸기_매목조사_GRS80.csv";a.click();URL.revokeObjectURL(a.href);
+}
+renderBoundaryInit();render();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+<script>
+(() => {
+  window.__forestFeedback = function(){
+    const s=window.feedbackSettings||{soundOn:true,soundVol:60,vibOn:true,vibVol:35};
+    try{if(s.vibOn && navigator.vibrate) navigator.vibrate(Number(s.vibVol)||35)}catch(e){}
+    try{
+      if(!s.soundOn)return;
+      const ctx=window.__forestAudioCtx || new (window.AudioContext||window.webkitAudioContext)();
+      window.__forestAudioCtx=ctx;if(ctx.state==="suspended")ctx.resume();
+      const o=ctx.createOscillator(),g=ctx.createGain(),now=ctx.currentTime;
+      o.type="sine";o.frequency.value=880;
+      const amp=Math.max(0.001,(Number(s.soundVol)||60)/100*0.70);
+      g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(amp,now+0.005);g.gain.exponentialRampToValueAtTime(0.0001,now+0.055);
+      const c=ctx.createDynamicsCompressor();c.threshold.value=-8;c.knee.value=5;c.ratio.value=10;c.attack.value=0.001;c.release.value=0.06;o.connect(g);g.connect(c);c.connect(ctx.destination);o.start();o.stop(now+0.085);
+    }catch(e){}
+  };
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b)return;
+    if(b.id==="gps"||b.id==="keep"||b.id==="remove"||b.dataset.speciesIndex!==undefined||b.closest("#diam")) window.__forestFeedback();
+  },true);
+})();
+</script>
+
+<script>
+(() => {
+  const KEY="forestFeedbackSettings";
+  const defaults={soundOn:true,soundVol:60,vibOn:true,vibVol:35};
+  window.feedbackSettings=Object.assign({},defaults,JSON.parse(localStorage.getItem(KEY)||"{}"));
+  window.saveFeedbackSettings=function(){
+    const s=window.feedbackSettings;
+    localStorage.setItem(KEY,JSON.stringify(s));
+  };
+  window.openSettings=function(){
+    const s=window.feedbackSettings;
+    document.getElementById("soundOn").checked=s.soundOn;
+    document.getElementById("vibOn").checked=s.vibOn;
+    document.getElementById("soundVol").value=s.soundVol;
+    document.getElementById("vibVol").value=s.vibVol;
+    document.getElementById("soundVal").textContent=s.soundVol+"%";
+    document.getElementById("vibVal").textContent=s.vibVol+"ms";
+    document.getElementById("settingsPanel").style.display="block";
+  };
+  window.closeSettings=function(){document.getElementById("settingsPanel").style.display="none"};
+  document.addEventListener("DOMContentLoaded",()=>{
+    document.getElementById("soundOn").addEventListener("change",e=>{feedbackSettings.soundOn=e.target.checked;saveFeedbackSettings()});
+    document.getElementById("vibOn").addEventListener("change",e=>{feedbackSettings.vibOn=e.target.checked;saveFeedbackSettings()});
+    document.getElementById("soundVol").addEventListener("input",e=>{feedbackSettings.soundVol=+e.target.value;document.getElementById("soundVal").textContent=e.target.value+"%";saveFeedbackSettings()});
+    document.getElementById("vibVol").addEventListener("input",e=>{feedbackSettings.vibVol=+e.target.value;document.getElementById("vibVal").textContent=e.target.value+"ms";saveFeedbackSettings()});
+  });
+  window.testVibration=function(){try{if(feedbackSettings.vibOn) navigator.vibrate(feedbackSettings.vibVol)}catch(e){}};
+  window.testSound=function(){
+    try{
+      if(!feedbackSettings.soundOn)return;
+      const ctx=window.__forestAudioCtx || new (window.AudioContext||window.webkitAudioContext)();
+      window.__forestAudioCtx=ctx;
+      if(ctx.state==="suspended")ctx.resume();
+      const o=ctx.createOscillator(),g=ctx.createGain(),now=ctx.currentTime;
+      o.type="sine";o.frequency.value=880;
+      const amp=Math.max(0.001,feedbackSettings.soundVol/100*0.70);
+      g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(amp,now+0.005);g.gain.exponentialRampToValueAtTime(0.0001,now+0.06);
+      o.connect(g);g.connect(ctx.destination);o.start();o.stop(now+0.065);
+    }catch(e){}
+  };
+})();
+</script>
+
+<script>
+function hx(x){return String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function saveHangulDoc(){
+ try{
+  ensureBoundaryState();
+  const lines=["숲가꾸기 매목조사","조사구역: "+(document.getElementById("site")?.value||""),"면적(ha): "+(document.getElementById("area")?.value||""),"현재주소: "+(S.address||""),"본수 제거율: "+(document.getElementById("rate")?.textContent||"0.0%"),"","수종별 기록"];
+  const m={};(S.records||[]).forEach(r=>{const sp=r.species||"기타",d=String(r.diameter);m[sp]??={t:0,k:0,r:0,d:{}};m[sp].t++;if(r.action==="제거")m[sp].r++;else m[sp].k++;m[sp].d[d]??={k:0,r:0};if(r.action==="제거")m[sp].d[d].r++;else m[sp].d[d].k++;});
+  Object.entries(m).forEach(([sp,v])=>{lines.push(`${sp} · 전체 ${v.t} · 존치 ${v.k} · 제거 ${v.r}`);Object.entries(v.d).forEach(([d,x])=>lines.push(`  ${d}cm: 존치 ${x.k} · 제거 ${x.r}`));});
+  lines.push("","경계목 (계산 "+(boundaryIncluded?"포함":"제외")+")");S.boundaryDiameters.forEach((d,i)=>lines.push(`${i+1}번: ${S.boundarySpecies[i]||""} / ${d||""}cm`));
+  lines.push("","매목 기록");(S.records||[]).forEach((r,i)=>lines.push(`${i+1}. ${r.species||""} / ${r.diameter||""}cm / ${r.action||""} / ${r.lat??""}, ${r.lon??""} / ${r.x??""}, ${r.y??""}`));
+  const body=lines.map(t=>`<w:p><w:r><w:t xml:space="preserve">${hx(t)}</w:t></w:r></w:p>`).join("");
+  const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr/></w:body></w:document>`;
+  const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
+  const rel=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  const z=zipDocx([["[Content_Types].xml",ct],["_rels/.rels",rel],["word/document.xml",doc]]);
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([z],{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}));a.download="숲가꾸기_매목조사.docx";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+ }catch(e){alert("한글 저장 중 오류가 발생했습니다.");}
+}
+function zipDocx(items){
+ const E=new TextEncoder(),chunks=[],cent=[];let off=0;
+ const cat=(a,b)=>{const x=new Uint8Array(a.length+b.length);x.set(a);x.set(b,a.length);return x},u16=n=>new Uint8Array([n&255,n>>8&255]),u32=n=>new Uint8Array([n&255,n>>8&255,n>>16&255,n>>24&255]);
+ function crc(a){let c=0xffffffff;for(const b of a){c^=b;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0)}return(c^0xffffffff)>>>0}
+ items.forEach(([name,text])=>{const nb=E.encode(name),d=E.encode(text),r=crc(d);let h=new Uint8Array();h=cat(h,u32(0x04034b50));h=cat(h,u16(20));h=cat(h,u16(0x800));h=cat(h,u16(0));h=cat(h,u16(0));h=cat(h,u16(0));h=cat(h,u16(0));h=cat(h,u32(r));h=cat(h,u32(d.length));h=cat(h,u32(d.length));h=cat(h,u16(nb.length));h=cat(h,u16(0));h=cat(h,nb);chunks.push(h,d);let q=new Uint8Array();q=cat(q,u32(0x02014b50));q=cat(q,u16(20));q=cat(q,u16(20));q=cat(q,u16(0x800));q=cat(q,u16(0));q=cat(q,u16(0));q=cat(q,u16(0));q=cat(q,u32(r));q=cat(q,u32(d.length));q=cat(q,u32(d.length));q=cat(q,u16(nb.length));q=cat(q,u16(0));q=cat(q,u16(0));q=cat(q,u16(0));q=cat(q,u16(0));q=cat(q,u32(0));q=cat(q,u32(off));q=cat(q,nb);cent.push(q);off+=h.length+d.length});
+ const local=chunks.reduce(cat,new Uint8Array()),cd=cent.reduce(cat,new Uint8Array());let e=new Uint8Array();e=cat(e,u32(0x06054b50));e=cat(e,u16(0));e=cat(e,u16(0));e=cat(e,u16(items.length));e=cat(e,u16(items.length));e=cat(e,u32(cd.length));e=cat(e,u32(local.length));e=cat(e,u16(0));return cat(cat(local,cd),e);
+}
+</script></body></html>
